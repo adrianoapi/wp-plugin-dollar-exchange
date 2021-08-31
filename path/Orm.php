@@ -20,7 +20,7 @@ class Orm
     public function insert($obj)
     {
         $insert = "INSERT INTO `{$this->table}` (`id`, `type`, `price_buy`, `price_sell`, `date`)
-                    VALUES (NULL, 'Dólar', '{$obj->cotacaoCompra}', '{$obj->cotacaoVenda}', '".date('Y-m-d')."')";
+                    VALUES (NULL, 'Dollar', '{$obj->cotacaoCompra}', '{$obj->cotacaoVenda}', '".date('Y-m-d')."')";
         return $this->wpdb->query($insert);
     }
 
@@ -46,6 +46,28 @@ class Orm
             $query .= " {$value},";
         endforeach;
         return substr($query,0,-1);
+    }
+
+    public function create()
+    {
+        $create = "CREATE TABLE `{$this->table}` 
+        ( 
+            `id` INT NOT NULL AUTO_INCREMENT , 
+            `type` VARCHAR(20) NOT NULL , 
+            `price_buy` DECIMAL(10,2) NOT NULL , 
+            `price_sell` DECIMAL(10,2) NOT NULL , 
+            `date` DATE NOT NULL , 
+            PRIMARY KEY (`id`)
+        ) ENGINE = InnoDB;";
+
+        $this->wpdb->query($create);
+    }
+
+    public function insertDefault($obj)
+    {
+        $insert = "INSERT INTO `{$this->table}` (`id`, `type`, `price_buy`, `price_sell`, `date`)
+                    VALUES (NULL, '{$obj->type}', '{$obj->price_buy}', '{$obj->price_sell}', '{$obj->date}')";
+        return $this->wpdb->query($insert);
     }
 }
 ?>

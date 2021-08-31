@@ -6,6 +6,11 @@ class Configuration
         return "Dollar Exchange";
     }
 
+    public static function getTitleMenu()
+    {
+        return "Dollar Exchange";
+    }
+
     public static function getTitlePage()
     {
         return "Dollar Exchange Page";

@@ -18,34 +18,30 @@ foreach (glob(plugin_dir_path(__FILE__) . 'path/*.php') as $file) {
 function exchange_on_menu()
 {
   add_menu_page(
-    Configuration::getTitle(), 
-    Configuration::getTitlePage(),
+    Configuration::getTitlePage(), 
+    Configuration::getTitleMenu(),
     'manage_options',
     Configuration::getPluginName(),
-    Configuration::getInitial()
+    Configuration::getInitial(),
+    plugin_dir_url( __FILE__ ) . 'assets/images/dollar.png'
   );
 }
 
 function exchange_on_activation()
 {
     global $wpdb;
-    # Cria a tabela para armazenar as cotações
-    $table_name = $wpdb->prefix . "dollar_exchange";
-    $create = "CREATE TABLE `{$table_name}` 
-    ( 
-        `id` INT NOT NULL AUTO_INCREMENT , 
-        `type` VARCHAR(20) NOT NULL , 
-        `price_buy` DECIMAL(10,2) NOT NULL , 
-        `price_sell` DECIMAL(10,2) NOT NULL , 
-        `date` DATE NOT NULL , 
-        PRIMARY KEY (`id`)
-    ) ENGINE = InnoDB;";
 
-    $wpdb->query($create);
+    $orm = new Orm('dollar_exchange', $wpdb);
+    $rst = $orm->create();
 
-    $insert = "INSERT INTO `{$table_name}` (`id`, `type`, `price_buy`, `price_sell`, `date`)
-                VALUES (NULL, 'dólar', '5.24', '5.24', '2021-08-26')";
-    $wpdb->query($insert);
+    $obj = new stdClass();
+    $obj->price_buy = '5.24';
+    $obj->price_sell = '5.24';
+    $obj->date = '2021-08-26';
+    $obj->type = 'Dollar';
+
+    $orm = new Orm('dollar_exchange', $wpdb);
+    $rst = $orm->insertDefault($obj);
 
 }
 
@@ -125,7 +121,6 @@ function voucher_register_table_results()
 
     }
     
-    # Query
     $orm = new Orm('dollar_exchange', $wpdb);
     $exchanges = $orm->select(["date = '".date('Y-m-d')."' ORDER BY id desc limit 1"]);
 
