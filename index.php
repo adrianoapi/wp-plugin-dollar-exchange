@@ -6,12 +6,24 @@
   Author: AdrianoScpace
   Author URI: http://adriano.space/
  */
+add_action('admin_menu', 'exchange_on_menu');
 register_activation_hook(__FILE__, 'exchange_on_activation');
 register_deactivation_hook(__FILE__, 'exchange_on_deactivation');
 register_uninstall_hook(__FILE__, 'exchange_on_uninstall');
 
 foreach (glob(plugin_dir_path(__FILE__) . 'path/*.php') as $file) {
     include_once $file;
+}
+
+function exchange_on_menu()
+{
+  add_menu_page(
+    Configuration::getTitle(), 
+    Configuration::getTitlePage(),
+    'manage_options',
+    Configuration::getPluginName(),
+    Configuration::getInitial()
+  );
 }
 
 function exchange_on_activation()
@@ -45,26 +57,54 @@ function exchange_on_deactivation()
 function exchange_on_uninstall()
 {
     global $wpdb;
-    $table_name = $wpdb->prefix . "dollar_exchange";
-    $wpdb->query("DROP TABLE IF EXISTS {$table_name}");
+    $orm = new Orm('dollar_exchange', $wpdb);
+    $orm->drop();
+}
+
+ 
+/**
+ * Configure admin view
+ */
+function dollar_exchange_init()
+{
+  exchange_on_check_delete_item();
+
+  global $wpdb;
+  $options = bio_get_config();
+
+  $orm = new Orm('dollar_exchange', $wpdb);
+  $rst = $orm->select(["1 ORDER BY date DESC"]);
+
+  $structure = new Structure(new Configuration,'form', $rst);
+  echo $structure->render();
+
+}
+
+function exchange_on_check_delete_item()
+{
+    global $wpdb;
+    if(array_key_exists('id', $_GET)){
+        $orm = new Orm('dollar_exchange', $wpdb);
+        $orm->delete($_GET['id']);
+    }
 }
 
 function voucher_check_register($wpdb)
 {
-    $table_name = $wpdb->prefix . "dollar_exchange";
-    $select = "SELECT * FROM `{$table_name}` 
-               WHERE date = '".date('Y-m-d')."'";
-    return $wpdb->get_results($select);
+    $orm = new Orm('dollar_exchange', $wpdb);
+    return $orm->select(["date = '".date('Y-m-d')."'"]);
 }
 
+/**
+ * Configure public view
+ */
 function voucher_register_table_results()
 {
     global $wpdb;
-    $result = [];
-    $table_name = $wpdb->prefix . "dollar_exchange";
 
     if(empty(voucher_check_register($wpdb)))
     {
+        
         $model = new Soap();
         $model->setDateBegin(date('m-d-Y'))
             ->setDateEnd(date('m-d-Y'));
@@ -75,12 +115,10 @@ function voucher_register_table_results()
             $size = count($obj->value);
             $id   =  $size > 0 ? $size -1 : $size;
 
-            if(!empty($obj->value[$id])){
-
-                $insert = "INSERT INTO `{$table_name}` (`id`, `type`, `price_buy`, `price_sell`, `date`)
-                    VALUES (NULL, 'Dólar', '{$obj->value[$id]->cotacaoCompra}', '{$obj->value[$id]->cotacaoVenda}', '".date('Y-m-d')."')";
-                $wpdb->query($insert);
-
+            if(!empty($obj->value[$id]))
+            {
+                $orm = new Orm('dollar_exchange', $wpdb);
+                $orm->insert($obj->value[$id]);
             }
             
         }
@@ -88,9 +126,10 @@ function voucher_register_table_results()
     }
     
     # Query
-    $exchanges = $wpdb->get_results("SELECT * FROM {$table_name} ORDER BY id desc limit 1");
+    $orm = new Orm('dollar_exchange', $wpdb);
+    $exchanges = $orm->select(["date = '".date('Y-m-d')."' ORDER BY id desc limit 1"]);
 
-    $structure = new Structure('tabela', $exchanges);
+    $structure = new Structure(new Configuration, 'table', $exchanges);
     echo $structure->render();
 
 ?>
