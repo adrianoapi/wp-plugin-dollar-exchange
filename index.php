@@ -122,7 +122,7 @@ function voucher_register_table_results()
     }
     
     $orm = new Orm('dollar_exchange', $wpdb);
-    $exchanges = $orm->select(["date = '".date('Y-m-d')."' ORDER BY id desc limit 1"]);
+    $exchanges = $orm->select(["1 ORDER BY id desc limit 1"]);
 
     $structure = new Structure(new Configuration, 'table', $exchanges);
     echo $structure->render();
