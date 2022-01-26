@@ -12,9 +12,8 @@ class Soap
     public function build()
     {
         $context  = stream_context_create($this->opts());
-        #$url     = 'https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@moeda=%27USD%27&@dataInicial=%27'.$this->dateBegin.'%27&@dataFinalCotacao=%27'.$this->dateEnd.'%27&$top=100&$format=json';
-        $url      = "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarDia(dataCotacao=@dataCotacao)?@dataCotacao='".$this->dateBegin."'&$top=100&$format=json";
-        return file_get_contents($url, false, $this->streamSSL());
+        $url      = "22https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarDia(dataCotacao=@dataCotacao)?@dataCotacao='".$this->dateBegin."'&top=100&format=json";
+        return @file_get_contents($url, false, $this->streamSSL());
     }
 
     private function streamSSL()
